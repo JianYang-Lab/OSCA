@@ -9,58 +9,54 @@
 #include "l4_osc.h"
 #include "Module_vqtl_drm_svlm.h"
 #include "config.h"
+#include <unistd.h>
 
 using namespace EFILE;
 using namespace VQTL;
 using namespace BFILE;
 using namespace PERMU;
 
+std::string getOSName()
+{
+    #ifdef _WIN64
+    return "Windows";
+    #elif __linux__
+    return "Linux";
+    #elif __APPLE__ || __MACH__
+    return "MacOS";
+    #else
+    return "Other";
+    #endif
+}
+
 int main(int argc, char * argv[])
 {
     cout << "*******************************************************************" << endl;
-#if defined __linux && __GNUC__
     cout << "* OSCA (OmicS-data-based Complex trait Analysis)" << endl;
-    cout << "* VERSION " << OSCA_VERSION << endl;
+    cout << "* Version " << OSCA_VERSION << " " << getOSName().c_str() << endl;
+#if defined __linux && __GNUC__
     cout << "* Build at " << __DATE__ << " " << __TIME__ << ", by GCC " << __GNUC__ << "." << __GNUC_MINOR__ << endl;
 # if defined LINUX_VERSION_MAJOR && defined LINUX_VERSION_PATCHLEVEL
     cout << "* On linux, " << "kernel " << LINUX_VERSION_MAJOR << "." << LINUX_VERSION_PATCHLEVEL <<endl;
 # endif
-#else
-    cout << "* OmicS-data-based Complex trait Analysis (OSCA)" << endl;
-    cout << "* version " << OSCA_VERSION << endl;
 #endif
-    cout << "* (C) 2016 Futao Zhang, Zhihong Zhu and Jian Yang" << endl;
-    cout << "* The University of Queensland & Westlake University" << endl;
+    cout << "* (C) 2016-present, Yang Lab, Westlake University" << endl;
+    cout << "* Please report bugs to Jian Yang jian.yang@westlake.edu.cn" << endl;
     cout << "* MIT License" << endl;
     cout << "*******************************************************************" << endl;
 
-    string logfname = "";
+    string logfname = "osca.log";
     string outname = "";
-    string task_num = "";
-    string task_id = "";
-    for (int i = 0; i <argc; i++) {
-        if (0 == strcmp(argv[i], "--out"))
-            outname = string(argv[++i]);
-        if (0 == strcmp(argv[i], "--task-num"))
-            task_num = string(argv[++i]);
-        if (0 == strcmp(argv[i], "--task-id"))
-            task_id = string(argv[++i]);
+    string task_num = "1";
+    string task_id = "1";
+    for (int i = 0; i < argc; i++) 
+    {
+        if (0 == strcmp(argv[i], "--out"))      outname = string(argv[++i]);
+        if (0 == strcmp(argv[i], "--task-num")) task_num = string(argv[++i]);
+        if (0 == strcmp(argv[i], "--task-id"))  task_id = string(argv[++i]);
     }
 
-    if(outname == "") {
-        logfname="osca.log";
-    }
-    else {
-        if (task_num == "") {
-            logfname = outname + ".log";
-        } else {
-            if (task_id == "") {
-                logfname = outname + "_" + task_num + "_" + "1" + ".log";
-            } else {
-                logfname = outname + "_" + task_num + "_" + task_id + ".log";
-            }
-        }
-    }
+    if(outname != "")   logfname = outname + "_" + task_num + "_" + task_id + ".log";
 
     //if out file name contain a directory name, creat it recursively if not exist.
     char logfname_c[1024];
@@ -78,28 +74,36 @@ int main(int argc, char * argv[])
     }
 
     logfile = fopen(logfname.c_str(),"w");
-    if (!logfile) {
+    if (!logfile) 
+    {
         printf("Error: Failed to open log file %s.\n", logfname.c_str());
         exit(EXIT_FAILURE);
     }
-    printf("Logging to %s.\n", logfname.c_str());
-
-    FLAGS_VALID_CK(argc, argv);
 
     long int time_used = 0, start = time(NULL);
     time_t curr = time(0);
-    LOGPRINTF("Analysis started: %s \n", ctime(&curr));
+    char timeStr[100]; // 根据需要调整缓冲区大小
+    // 自定义时间格式
+    strftime(timeStr, sizeof(timeStr), "%H:%M:%S %Z on %a %b %d %Y", localtime(&curr));
+    LOGPRINTF("Analysis started at %s. \n", timeStr);
+    char hostname[256];
+    if (gethostname(hostname, sizeof(hostname)) == 0) {
+        LOGPRINTF("Hostname: %s\n", hostname);
+    } 
+
+    FLAGS_VALID_CK(argc, argv);
+    printf("Logging to %s.\n", logfname.c_str());
 
     unsigned char* wkspace_ua;
-    uint64_t mb=2048;
+    uint64_t mb = 2048;
     wkspace_ua = (unsigned char*)malloc(mb * 1048576 * sizeof(char));
     memset(wkspace_ua, 0, mb * 1048576 * sizeof(char));
     uint64_t llxx=getMemSize_Plink();
     mem_left=getAllocMB_Plink(llxx);
-    if (llxx) {
+    // if (llxx) {
         //sprintf(logbuf, "%llu MB RAM detected; reserving %lld MB for main workspace.\n", llxx, mem_left);
         //logprintb();
-    }
+    // }
     LOGPRINTF("\nOptions:\n");
 
     int module_status = 0;
