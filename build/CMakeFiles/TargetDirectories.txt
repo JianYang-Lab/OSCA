@@ -1,3 +1,0 @@
-/Users/xinranliu/Desktop/Westlake/osca/build/CMakeFiles/osca.dir
-/Users/xinranliu/Desktop/Westlake/osca/build/CMakeFiles/edit_cache.dir
-/Users/xinranliu/Desktop/Westlake/osca/build/CMakeFiles/rebuild_cache.dir
