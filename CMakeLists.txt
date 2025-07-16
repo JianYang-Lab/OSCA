@@ -1,8 +1,9 @@
 #osca CMakeLists.txt
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
 project(osca C CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
 
 #set project source directory
@@ -21,9 +22,9 @@ message(STATUS ${CMAKE_HOST_SYSTEM})
 if (UNIX)
     set(system "UNIX-like")
 elseif(APPLE)
-    set(system "macOS")
+    set(system "MacOS")
 elseif(WIN32)
-    set(system "windows")
+    set(system "Windows")
 else()
     message(FATAL_ERROR "Operation system not recognized, only support unix apple and windows.")
 endif()
@@ -56,7 +57,7 @@ message(STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR})
 message("")
 
 
-#detect zlib
+# detect zlib
 set(zlib_path FALSE CACHE PATH "zlib package location")
 set(zlib_include_path FALSE CACHE PATH "zlib head file location")
 set(zlib_lib_path FALSE CACHE PATH "zlib library location")
@@ -78,7 +79,7 @@ else()
 endif()
 
 
-#detect gsl
+# detect gsl
 set(gsl_path FALSE CACHE PATH "gsl package directory")
 set(gsl_include_path FALSE CACHE PATH "gsl include direcoty")
 set(gsl_lib_path FALSE CACHE PATH "gsl lib directory")
@@ -107,9 +108,9 @@ else()
 endif()
 
 
-#detect Eigen
+# detect Eigen
 set(eigen_path FALSE CACHE PATH "path where Eigen located.")
-#set(eigen_path FALSE)
+# set(eigen_path FALSE)
 if (eigen_path)
     message(STATUS "You set eigen path to: " ${eigen_path})
     set(eigen_dir ${eigen_path}/eigen3)
@@ -124,7 +125,7 @@ else()
 endif()
 
 
-#detect intel MKL
+# detect intel MKL
 set(mkl_path FALSE CACHE PATH "intel MKL package location")
 set(mkl_include_path CACHE PATH "")
 set(mkl_lib_path CACHE PATH "")
@@ -149,7 +150,7 @@ else ()
 endif()
 
 
-#detech Rmath
+# detech Rmath
 set(rmath_path FALSE CACHE PATH "")
 set(rmath_include_path CACHE PATH "")
 set(rmath_lib_path CACHE PATH "")
@@ -175,7 +176,7 @@ else()
 endif()
 
 
-#build
+# build
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 add_executable(osca ${PRJ_SOURCE_DIR}/l0_com.cpp ${PRJ_SOURCE_DIR}/l0_io.cpp 
@@ -190,11 +191,11 @@ add_executable(osca ${PRJ_SOURCE_DIR}/l0_com.cpp ${PRJ_SOURCE_DIR}/l0_io.cpp
     ${PRJ_SOURCE_DIR}/l4_osc.cpp  ${PRJ_SOURCE_DIR}/cis_learn_beta.cpp  
     ${PRJ_SOURCE_DIR}/dcdflib.cpp
     )
-if (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    if (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
     if (system STREQUAL "UNIX-like")
         if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
             target_compile_options(osca PRIVATE -fopenmp)
-            target_include_directories(osca PRIVATE ${zlib_include_dir} PRIVATE ${gsl_include_dir} PRIVATE ${eigen_dir} PRIVATE  ${mkl_include_dir} PRIVATE ${rmath_lib_dir})
+            target_include_directories(osca PRIVATE ${zlib_include_dir} PRIVATE ${gsl_include_dir} PRIVATE ${eigen_dir} PRIVATE  ${mkl_include_dir} PRIVATE ${rmath_include_dir})
             target_link_directories(osca PRIVATE ${zlib_lib_dir} PRIVATE ${gsl_lib_dir} PRIVATE ${mkl_lib_dir} PRIVATE  ${rmath_lib_dir})
             if (NOT BUILD_STATIC)
                 target_link_libraries(osca z -Wl,--start-group mkl_core mkl_intel_lp64 mkl_gnu_thread -Wl,--end-group gomp pthread Rmath gsl gslcblas m)
@@ -203,7 +204,7 @@ if (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
                 target_link_libraries(osca -static z -Wl,--start-group mkl_core mkl_intel_lp64 mkl_gnu_thread -Wl,--end-group gomp pthread Rmath gsl gslcblas m dl)
             endif()
         elseif (CMAKE_C_COMPILER_ID STREQUAL "Clang")
-            target_include_directories(osca PRIVATE ${zlib_include_dir} PRIVATE ${gsl_include_dir} PRIVATE ${eigen_dir} PRIVATE  ${mkl_include_dir} PRIVATE ${rmath_lib_dir})
+            target_include_directories(osca PRIVATE ${zlib_include_dir} PRIVATE ${gsl_include_dir} PRIVATE ${eigen_dir} PRIVATE  ${mkl_include_dir} PRIVATE ${rmath_include_dir})
             target_link_directories(osca PRIVATE ${zlib_lib_dir} PRIVATE ${gsl_lib_dir} PRIVATE ${mkl_lib_dir} PRIVATE  ${rmath_lib_dir})
             if (NOT BUILD_STATIC)
                 target_link_libraries(osca z -Wl,--start-group mkl_core mkl_intel_lp64 mkl_gnu_thread -Wl,--end-group gomp pthread Rmath gsl gslcblas m)
@@ -211,15 +212,31 @@ if (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
                 message(WARNING "You now try to link libs staticlly, You need make sure all static lib was installed.")
                 target_link_libraries(osca -static z -Wl,--start-group mkl_core mkl_intel_lp64 mkl_gnu_thread -Wl,--end-group gomp pthread Rmath gsl gslcblas m dl)
             endif()
-
         endif()
-    elseif (system STREQUAL "macOS")
-    elseif (system STREQUAL "windows")
+    elseif (system STREQUAL "MacOS")
+    elseif (system STREQUAL "Windows")
+    else()
+        message(FATAL_ERROR "OS not recgnized.")
+    endif()
+elseif (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    if (system STREQUAL "UNIX-like")
+        target_include_directories(osca PRIVATE ${zlib_include_dir} PRIVATE ${gsl_include_dir} PRIVATE ${eigen_dir} PRIVATE  ${mkl_include_dir} PRIVATE ${rmath_include_dir})
+        target_link_directories(osca PRIVATE ${zlib_lib_dir} PRIVATE ${gsl_lib_dir} PRIVATE ${mkl_lib_dir} PRIVATE  ${rmath_lib_dir})
+        target_link_libraries(osca pthread m Rmath
+            # -force_load /Users/xinranliu/Desktop/mkl_v2022.0.1_d20220120/mkl/2022.0.1/lib/ia32/libmkl_core.a 
+            # -force_load /Users/xinranliu/Desktop/mkl_v2022.0.1_d20220120/mkl/2022.0.1/lib/ia32/libmkl_intel_lp64.a 
+            # -force_load /Users/xinranliu/Desktop/mkl_v2022.0.1_d20220120/mkl/2022.0.1/lib/ia32/libmkl_gnu_thread.a
+            -force_load /opt/homebrew/Cellar/zlib/1.3/lib/libz.a
+            -force_load /opt/homebrew/Cellar/libomp/17.0.6/lib/libomp.a
+            -force_load /opt/homebrew/Cellar/gsl/2.7.1/lib/libgsl.a
+            -force_load /opt/homebrew/Cellar/gsl/2.7.1/lib/libgslcblas.a
+        )
+    elseif (system STREQUAL "Windows")
     else()
         message(FATAL_ERROR "OS not recgnized.")
     endif()
 else()
-    message(STATUS "Until now, only x86_64 architecture was tested.")
+    message(STATUS "Until now, only x86_64 and arm64 architecture was tested.")
 endif()
 
 
