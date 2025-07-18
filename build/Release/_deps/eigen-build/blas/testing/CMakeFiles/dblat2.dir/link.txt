@@ -1,1 +1,0 @@
-/opt/homebrew/bin/gfortran -O3 -DNDEBUG -O3 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk CMakeFiles/dblat2.dir/dblat2.f.o -o dblat2  -Wl,-rpath,/Users/houjunren/Desktop/OSCA_cis-trans/build/Release/_deps/eigen-build/blas ../libeigen_blas.dylib 
