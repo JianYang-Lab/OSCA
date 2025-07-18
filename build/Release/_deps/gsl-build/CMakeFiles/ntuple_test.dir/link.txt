@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/cc -O3 -DNDEBUG -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names -m64 CMakeFiles/ntuple_test.dir/ntuple/test.c.o -o bin/ntuple_test  libgsl.a libgslcblas.a -lm 

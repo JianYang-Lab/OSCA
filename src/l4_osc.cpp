@@ -10,6 +10,7 @@
 #include "Module_vqtl_drm_svlm.h"
 #include "config.h"
 #include <unistd.h>
+#include <sys/stat.h>
 
 using namespace EFILE;
 using namespace VQTL;
@@ -106,17 +107,18 @@ int main(int argc, char * argv[])
     // }
     LOGPRINTF("\nOptions:\n");
 
-    int module_status = 0;
-#ifdef MODULE_VQTL_DRM_SVLM
-    fclose(logfile);
-    module_status += Module_vqtl_drm(argc, argv);
-    module_status += Module_vqtl_svlm(argc, argv);
-    logfile = fopen(logfname.c_str(), "a");
-#endif
-    if (!module_status) {
-        option(argc, argv);
-    }
+//     int module_status = 0;
+// #ifdef MODULE_VQTL_DRM_SVLM
+//     fclose(logfile);
+//     module_status += Module_vqtl_drm(argc, argv);
+//     module_status += Module_vqtl_svlm(argc, argv);
+//     logfile = fopen(logfname.c_str(), "a");
+// #endif
+//     if (!module_status) {
+//         option(argc, argv);
+//     }
 
+    option(argc, argv);
 
     curr = time(0);
     time_used = time(NULL) - start;
@@ -276,6 +278,8 @@ void option(int option_num, char * option_str[])
     int vqtl_mtd=0; // 0 for Bartlett’s test; 1 for Levene’s test with mean; 2 for Levene’s test with median; 3 for Fligner-Killeen test
     char* bFileName = NULL;
     bool adjprb=false;
+    bool flag_drm=false;
+    bool flag_svlm=false;
 
     //
     bool eqtl=false;
@@ -380,6 +384,8 @@ void option(int option_num, char * option_str[])
     uint32_t permu_times = 100;
     bool not_use_top = false;
     bool no_isoform_eqtl = false;
+
+
     for(int i=0;i<option_num;i++)
     {
         if(0==strcmp(option_str[i],"--efile")){
@@ -1727,6 +1733,14 @@ void option(int option_num, char * option_str[])
             LOGPRINTF("--no-isofrom-eQTL\n");
         }
 
+        if (0 == strcmp(option_str[i], "--drm")) {
+            flag_drm = true;
+        }
+
+        if (0 == strcmp(option_str[i], "--svlm")) {
+            flag_svlm = true;
+        }
+
     }
 
 
@@ -1752,6 +1766,15 @@ void option(int option_num, char * option_str[])
 #endif
 #endif
 
+    if (flag_drm) {
+        Module_vqtl_drm(option_num, option_str);
+        return;
+    }
+
+    if (flag_svlm) {
+        Module_vqtl_svlm(option_num, option_str);
+        return;
+    }
 
     if(merge_beed_flag)
         merge_beed( outfileName, befileFlstName, problstName, problst2exclde, \

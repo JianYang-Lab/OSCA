@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libtest-support.a "CMakeFiles/test-support.dir/function.cc.o" "CMakeFiles/test-support.dir/format.cc.o" "CMakeFiles/test-support.dir/util.cc.o" "CMakeFiles/test-support.dir/test-main.cc.o" "CMakeFiles/test-support.dir/__/gmock/gmock-gtest-all.cc.o"
+/Library/Developer/CommandLineTools/usr/bin/ranlib libtest-support.a

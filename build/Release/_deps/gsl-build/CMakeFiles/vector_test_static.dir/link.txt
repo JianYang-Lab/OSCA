@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/cc -O3 -DNDEBUG -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names -m64 CMakeFiles/vector_test_static.dir/vector/test_static.c.o -o bin/vector_test_static  libgsl.a libgslcblas.a -lm 

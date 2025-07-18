@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc liboscalib.a CMakeFiles/oscalib.dir/plinklite.c.o CMakeFiles/oscalib.dir/bodfile.c.o CMakeFiles/oscalib.dir/sysinfo.c.o CMakeFiles/oscalib.dir/besdfile.c.o
+/Library/Developer/CommandLineTools/usr/bin/ranlib liboscalib.a

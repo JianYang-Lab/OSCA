@@ -35,9 +35,9 @@ typedef struct sysinfo {
 extern "C" {
 #endif
 
-SYSINFO_EXTERN void get_sysinfo(SYSINFO_ptr sysinfo_data);
+void get_sysinfo(SYSINFO_ptr sysinfo_data);
 
-SYSINFO_EXTERN int mkdir_p(const char *dir, const mode_t mode);
+int mkdir_p(const char *dir, const mode_t mode);
 
 #ifdef __cplusplus
 }
