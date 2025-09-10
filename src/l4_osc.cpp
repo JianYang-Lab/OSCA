@@ -1141,14 +1141,39 @@ void option(int option_num, char * option_str[])
             FLAG_VALID_CK("--bfile", bFileName);
             LOGPRINTF("--bfile %s\n",bFileName);
         }
-        if(0==strcmp(option_str[i],"--vqtl-mtd")){
-            vqtl_mtd=atoi(option_str[++i]);
-            if(vqtl_mtd<0 || vqtl_mtd>4)
-            {
-                LOGPRINTF("Error: --vqtl-mtd should be 0, 1, 2 or 3.\n");
+        // if(0==strcmp(option_str[i],"--vqtl-mtd")){
+        //     vqtl_mtd=atoi(option_str[++i]);
+        //     if(vqtl_mtd<0 || vqtl_mtd>4)
+        //     {
+        //         LOGPRINTF("Error: --vqtl-mtd should be 0, 1, 2 or 3.\n");
+        //         TERMINATE();
+        //     }
+        //     LOGPRINTF("--vqtl-mtd %d\n",vqtl_mtd);
+        // }
+         if (0 == strcmp(option_str[i], "--vqtl-mtd")) {
+            const char *val = option_str[++i];
+            if (strcmp(val, "Bartlett") == 0) {
+                vqtl_mtd = 0;
+                LOGPRINTF("--vqtl-mtd Bartlett\n");
+            } else if (strcmp(val, "Levene_mean") == 0) {
+                vqtl_mtd = 1;
+                LOGPRINTF("--vqtl-mtd Levene_mean\n");
+            } else if (strcmp(val, "Levene_median") == 0) {
+                vqtl_mtd = 2;
+                LOGPRINTF("--vqtl-mtd Levene_median\n");
+            } else if (strcmp(val, "Fligner_Killeen") == 0) {
+                vqtl_mtd = 3;
+                LOGPRINTF("--vqtl-mtd Fligner_Killeen\n");
+            } else if (strcmp(val, "drm") == 0) {
+                flag_drm = true;
+                LOGPRINTF("--vqtl-mtd drm\n");
+            } else if (strcmp(val, "svlm") == 0) {
+                flag_svlm = true;
+                LOGPRINTF("--vqtl-mtd svlm\n");
+            } else {
+                LOGPRINTF("Error: --vqtl-mtd should be one of: Bartlett, Levene_mean, Levene_median, Fligner_Killeen, drm, or svlm.\n");
                 TERMINATE();
             }
-            LOGPRINTF("--vqtl-mtd %d\n",vqtl_mtd);
         }
         if (strcmp(option_str[i], "--adj-probe") == 0) {
             adjprb = true;
@@ -1733,13 +1758,6 @@ void option(int option_num, char * option_str[])
             LOGPRINTF("--no-isofrom-eQTL\n");
         }
 
-        if (0 == strcmp(option_str[i], "--drm")) {
-            flag_drm = true;
-        }
-
-        if (0 == strcmp(option_str[i], "--svlm")) {
-            flag_svlm = true;
-        }
 
     }
 
@@ -1766,6 +1784,10 @@ void option(int option_num, char * option_str[])
 #endif
 #endif
 
+    if (flag_drm && flag_svlm) {
+        fprintf(stderr, "Error: --drm and --svlm cannot be used at the same time.\n");
+        exit(1);
+    }
     if (flag_drm) {
         Module_vqtl_drm(option_num, option_str);
         return;

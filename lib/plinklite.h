@@ -93,7 +93,7 @@ typedef struct fam_line_stu {
 #define PLINK_Y_CHROM 202
 #define PLINK_MT_CHROM 203
 #define PLINK_BIM_POS_NA 0
-#define PLINK_MAX_ALLEL_LEN 8
+#define PLINK_MAX_ALLEL_LEN 17
 
 
 typedef struct bim_line_stu {

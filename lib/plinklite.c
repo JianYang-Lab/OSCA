@@ -591,7 +591,9 @@ bimreadline(PLINKFILE_ptr plink_dara, BIM_LINE_ptr bim_line)
             return 1;
         }
         if (allel1) {
-            strcpy(bim_line->allel1, allel1);
+            // strcpy(bim_line->allel1, allel1);
+            strncpy(bim_line->allel1, allel1, PLINK_MAX_ALLEL_LEN - 1);
+            bim_line->allel1[PLINK_MAX_ALLEL_LEN - 1] = '\0';   
             // str_len = strlen(allel1);
             // if (str_len >= PLINK_MAX_ALLEL_LEN) {
             //     // lookup Allel_trimed_stu recall allel string.
@@ -606,7 +608,9 @@ bimreadline(PLINKFILE_ptr plink_dara, BIM_LINE_ptr bim_line)
         }
 
         if (allel2) {
-            strcpy(bim_line->allel2, allel2);
+            // strcpy(bim_line->allel2, allel2);
+            strncpy(bim_line->allel2, allel2, PLINK_MAX_ALLEL_LEN - 1);
+            bim_line->allel2[PLINK_MAX_ALLEL_LEN - 1] = '\0';  
             // str_len = strlen(allel2);
             // if (str_len >= PLINK_MAX_ALLEL_LEN) {
             //     (bim_line->allel2)[0] = '\0';

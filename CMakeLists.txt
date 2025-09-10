@@ -57,77 +57,78 @@ CPMAddPackage(
   GIT_TAG v2.7.0
 )
 
-# MKL：用户可自行设置 MKL_ROOT 环境变量或通过 -DMKL_ROOT=path 来指定
-if(OS_NAME STREQUAL "Linux" OR OS_NAME STREQUAL "Windows")
-    if(NOT DEFINED MKL_ROOT)
-        set(MKL_ROOT "/opt/intel/mkl" CACHE PATH "Intel MKL root directory")
-    endif()
-    find_package(MKL REQUIRED PATHS ${MKL_ROOT} NO_DEFAULT_PATH)
+find_package(Threads REQUIRED)
+
+# Find OpenMP
+if(APPLE)
+    # Use manual flags for OpenMP with Apple Clang
+    set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp")
+    set(OpenMP_C_LIB_NAMES "omp")
+    set(OpenMP_C_INCLUDE_DIR "/opt/homebrew/opt/libomp/include")
+    set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
+    set(OpenMP_CXX_LIB_NAMES "omp")
+    set(OpenMP_CXX_INCLUDE_DIR "/opt/homebrew/opt/libomp/include")
+    set(OpenMP_omp_LIBRARY "/opt/homebrew/opt/libomp/lib/libomp.dylib")
 endif()
 
-# OpenMP
-find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
-    message(STATUS "OpenMP found")
-else()
-    message(WARNING "OpenMP not found, trying manual setup")
-    if(APPLE)
-        message(STATUS "Trying manual OpenMP setup on macOS")
-        set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp")
-        set(OpenMP_C_LIB_NAMES "omp")
-        set(OpenMP_C_INCLUDE_DIR "/opt/homebrew/opt/libomp/include")
-        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
-        set(OpenMP_CXX_LIB_NAMES "omp")
-        set(OpenMP_CXX_INCLUDE_DIR "/opt/homebrew/opt/libomp/include")
-        set(OpenMP_omp_LIBRARY "/opt/homebrew/opt/libomp/lib/libomp.dylib")
-        find_package(OpenMP REQUIRED)
-    elseif(UNIX)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-        find_package(OpenMP REQUIRED)
-    elseif(WIN32)
-        set(OpenMP_C_FLAGS "-fopenmp")
-        set(OpenMP_CXX_FLAGS "-fopenmp")
-        set(OpenMP_omp_LIBRARY "${LLVM_ROOT}/lib/libomp.lib")
-        find_package(OpenMP REQUIRED)
+if(LINUX)
+    if(NOT OMP_LIBRARY)
+        set(OMP_LIBRARY "/usr/lib64/libgomp.so.1")
     endif()
+    if(NOT MKL_DIR)
+        set(MKL_DIR "/soft/compiler/intel/oneapi-2022.2/mkl/2022.1.0/lib/cmake/mkl")
+    endif()
+    set(MKL_INTERFACE "lp64")
+    set(MKL_THREADING "gnu_thread")
+    set(MKL_ROOT "/soft/compiler/intel/oneapi-2022.2/mkl/2022.1.0")
+    set(MKL_INCLUDE_DIR "${MKL_ROOT}/include")
+    find_package(MKL REQUIRED)
 endif()
 
-# === Detect and configure Rmath (Rmath.h + libRmath) for different systems ===
-if (UNIX AND NOT APPLE)
-    find_path(RMATH_INCLUDE_DIR Rmath.h PATHS /usr/include /usr/local/include)
-    find_library(RMATH_LIBRARY Rmath PATHS /usr/lib /usr/local/lib)
-elseif(APPLE)
-    execute_process(
-        COMMAND uname -m
-        OUTPUT_VARIABLE ARCHITECTURE
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    
-    if("${ARCHITECTURE}" STREQUAL "arm64")
-        find_path(RMATH_INCLUDE_DIR Rmath.h PATHS /opt/homebrew/include)
-        find_library(RMATH_LIBRARY Rmath PATHS /opt/homebrew/lib)
-    else()
-        find_path(RMATH_INCLUDE_DIR Rmath.h PATHS /usr/local/include)
-        find_library(RMATH_LIBRARY Rmath PATHS /usr/local/lib)
+if(WIN32)
+    set(OpenMP_omp_LIBRARY "${LLVM_ROOT}/lib/libomp.lib")
+    set(OpenMP_C_FLAGS "-fopenmp") 
+    set(OpenMP_C_LIB_NAMES "omp")
+    set(OpenMP_CXX_FLAGS "-fopenmp")
+    set(OpenMP_CXX_LIB_NAMES "omp")
+    set(OpenMP_CXX_INCLUDE_DIR "${LLVM_ROOT}/lib/clang/20/include")
+
+    if(NOT MKL_DIR)
+        set(MKL_DIR "C:/Program Files (x86)/Intel/oneAPI/mkl/latest")
     endif()
-elseif(WIN32)
-    find_path(RMATH_INCLUDE_DIR Rmath.h PATHS "C:/R/include")
-    find_library(RMATH_LIBRARY Rmath PATHS "C:/R/lib")
+    set(MKL_INTERFACE "lp64")
+    find_package(MKL REQUIRED)
+endif()
+
+find_package(OpenMP REQUIRED)
+
+# Rmath
+if (NOT DEFINED RMATH_INCLUDE_DIR OR NOT DEFINED RMATH_LIBRARY)
+    if (OS_NAME STREQUAL "Linux")
+        find_path(RMATH_INCLUDE_DIR Rmath.h PATHS /storage/yangjianLab/sharedata/softwares/Rmath_v3.6.3_d20211126/include)
+        find_library(RMATH_LIBRARY Rmath PATHS /storage/yangjianLab/sharedata/softwares/Rmath_v3.6.3_d20211126/lib)
+    elseif(OS_NAME STREQUAL "MacOS")
+        execute_process(COMMAND uname -m OUTPUT_VARIABLE ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
+        if("${ARCHITECTURE}" STREQUAL "arm64")
+            find_path(RMATH_INCLUDE_DIR Rmath.h PATHS /opt/homebrew/include)
+            find_library(RMATH_LIBRARY Rmath PATHS /opt/homebrew/lib)
+        else()
+            find_path(RMATH_INCLUDE_DIR Rmath.h PATHS /usr/local/include)
+            find_library(RMATH_LIBRARY Rmath PATHS /usr/local/lib)
+        endif()
+    elseif(OS_NAME STREQUAL "Windows")
+        find_path(RMATH_INCLUDE_DIR Rmath.h PATHS "C:/R/include")
+        find_library(RMATH_LIBRARY Rmath PATHS "C:/R/lib")
+    endif()
 endif()
 
 if (NOT RMATH_INCLUDE_DIR OR NOT RMATH_LIBRARY)
-    message(FATAL_ERROR "Could NOT find Rmath (Rmath.h and libRmath)")
+    message(FATAL_ERROR "Could NOT find Rmath (Rmath.h and libRmath). You can set -DRMATH_INCLUDE_DIR=... -DRMATH_LIBRARY=...")
 endif()
-
-include_directories(${RMATH_INCLUDE_DIR})
 
 add_subdirectory(lib)
 
-find_package(Threads REQUIRED)
-
 set(PROJECT_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
-
 set(SOURCE_FILES
     src/l0_com.cpp src/l0_io.cpp src/l0_mem.cpp src/l0_stat.cpp
     src/l1_op_geno.cpp src/l1_stat.cpp
@@ -141,106 +142,84 @@ set(SOURCE_FILES
 
 add_executable(osca ${SOURCE_FILES})
 
-target_link_libraries(osca PRIVATE ${RMATH_LIBRARY})
-
+# Includes per target
 target_include_directories(osca PRIVATE
     ${PROJECT_INCLUDE_DIR}
     ${zlib_SOURCE_DIR}
     ${gsl_SOURCE_DIR}/include
     ${eigen_SOURCE_DIR}
-    ${RMATH_INCLUDE_DIR}   
+    ${MKL_INCLUDE}
+    ${RMATH_INCLUDE_DIR}
 )
 
-if(DEFINED MKL_INCLUDE_DIR)
-    target_include_directories(osca PRIVATE ${MKL_INCLUDE_DIR})
+# Compiler flags
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(osca PRIVATE -fopenmp)
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_C_COMPILER_VERSION MATCHES "Apple")
+    target_compile_options(osca PRIVATE -fopenmp)
+elseif(MSVC)
+    target_compile_options(osca PRIVATE /openmp)
 endif()
 
-if(BUILD_STATIC)
-    message(WARNING "Static linking requested: please ensure static libs installed on your system.")
-endif()
-
-if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    if(OS_NAME STREQUAL "Linux")
-        if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-            target_compile_options(osca PRIVATE -fopenmp)
-            if(BUILD_STATIC)
-                target_link_libraries(osca PRIVATE
-                    -static
-                    z
-                    Threads::Threads
-                    OpenMP::OpenMP_CXX
-                    mkl_core mkl_intel_lp64 mkl_gnu_thread
-                    gomp pthread
-                    Rmath gsl gslcblas
-                    m oscalib dl uuid
-                )
-            else()
-                target_link_libraries(osca PRIVATE
-                    z
-                    Threads::Threads
-                    OpenMP::OpenMP_CXX
-                    mkl_core mkl_intel_lp64 mkl_gnu_thread
-                    gomp pthread
-                    Rmath gsl gslcblas
-                    m oscalib dl uuid
-                )
-            endif()
-        elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-            target_compile_options(osca PRIVATE -fopenmp)
-            target_link_libraries(osca PRIVATE
-                z
-                Threads::Threads
-                OpenMP::OpenMP_CXX
-                mkl_core mkl_intel_lp64 mkl_gnu_thread
-                gomp pthread
-                Rmath gsl gslcblas
-                m oscalib dl uuid
-            )
-        endif()
-    elseif(OS_NAME STREQUAL "MacOS")
-        find_package(OpenMP REQUIRED)
-        target_compile_options(osca PRIVATE -Xpreprocessor -fopenmp)
-        target_link_libraries(osca PRIVATE
-            z
-            Threads::Threads
-            OpenMP::OpenMP_CXX
-            gsl gslcblas Rmath m oscalib
-        )
-        find_library(ACCELERATE_LIBRARY Accelerate)
-        if(ACCELERATE_LIBRARY)
-            target_link_libraries(osca PRIVATE ${ACCELERATE_LIBRARY})
-        endif()
-    elseif(OS_NAME STREQUAL "Windows")
-        target_compile_options(osca PRIVATE /openmp)
-        target_link_libraries(osca PRIVATE
-            z
-            gsl gslcblas Rmath m oscalib
-            Threads::Threads
-            OpenMP::OpenMP_CXX
-        )
+# Link libraries (per arch)cd
+if(OS_NAME STREQUAL "Linux" AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    target_link_libraries(osca PRIVATE
+        ${RMATH_LIBRARY}
+        OpenMP::OpenMP_CXX
+        Threads::Threads
+        MKL::MKL
+        z
+        gsl
+        gslcblas
+        oscalib
+        gomp
+        pthread
+        m
+        dl
+        uuid
+    )
+elseif(OS_NAME STREQUAL "MacOS")
+    target_link_libraries(osca PRIVATE
+        OpenMP::OpenMP_CXX
+        Threads::Threads
+        z
+        gsl
+        gslcblas
+        ${RMATH_LIBRARY}
+        oscalib
+    )
+    find_library(ACCELERATE_LIBRARY Accelerate)
+    if(ACCELERATE_LIBRARY)
+        target_link_libraries(osca PRIVATE ${ACCELERATE_LIBRARY})
     endif()
-elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
-    if(OS_NAME STREQUAL "MacOS")
-        target_include_directories(osca PRIVATE
-            /opt/homebrew/include
-            /opt/homebrew/include/gsl
-        )
-        target_link_libraries(osca PRIVATE
-            /opt/homebrew/lib/libz.a
-            /opt/homebrew/lib/libgsl.a
-            /opt/homebrew/lib/libgslcblas.a
-            /opt/homebrew/lib/libomp.a
-            ${CMAKE_BINARY_DIR}/lib/liboscalib.a
-            Rmath pthread m 
-        )
-
-    else()
-        message(FATAL_ERROR "arm64 only supported on MacOS currently.")
-    endif()
-else()
-    message(WARNING "Only x86_64 and arm64 architectures tested.")
+elseif(OS_NAME STREQUAL "Windows")
+    target_link_libraries(osca PRIVATE
+        MKL::MKL
+        ${RMATH_LIBRARY}
+        OpenMP::OpenMP_CXX
+        Threads::Threads
+        z
+        gsl
+        gslcblas
+        oscalib
+    )
 endif()
 
+# aarch64 macOS only
+# if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64" AND OS_NAME STREQUAL "MacOS")
+#     target_link_libraries(osca PRIVATE
+#         /opt/homebrew/lib/libz.a
+#         /opt/homebrew/lib/libgsl.a
+#         /opt/homebrew/lib/libgslcblas.a
+#         /opt/homebrew/lib/libomp.a
+#         ${CMAKE_BINARY_DIR}/lib/liboscalib.a
+#         ${RMATH_LIBRARY}
+#         pthread
+#         m
+#     )
+# endif()
+
+# Optional custom search path
 if(CUSTOM_INCLUDE_SEARCH_PATH)
     target_include_directories(osca PRIVATE ${CUSTOM_INCLUDE_SEARCH_PATH})
 endif()
@@ -248,6 +227,45 @@ if(CUSTOM_LIB_SEARCH_PATH)
     link_directories(${CUSTOM_LIB_SEARCH_PATH})
 endif()
 
-install(TARGETS osca RUNTIME DESTINATION bin)
+# Install
+if(LINUX)
+    set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
+
+    set_target_properties(osca PROPERTIES
+        INSTALL_RPATH "\$ORIGIN/../lib"
+        BUILD_WITH_INSTALL_RPATH TRUE
+    )
+
+    install(TARGETS osca ${PROJECT_LIBS}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+
+    install(FILES ${RMATH_LIBRARY} DESTINATION lib)
+    install(FILES ${CMAKE_SOURCE_DIR}/resources/osca.desktop DESTINATION share/applications)
+    install(FILES ${CMAKE_SOURCE_DIR}/resources/osca.png DESTINATION share/icons/hicolor/256x256/apps)
+    install(FILES ${CMAKE_SOURCE_DIR}/resources/osca.svg DESTINATION share/icons/hicolor/scalable/apps)
+
+elseif(WIN32)
+    install(TARGETS osca ${PROJECT_LIBS} DESTINATION bin)
+
+    file(GLOB RUNTIME_DLLS "${CMAKE_BINARY_DIR}/*.dll")
+    install(FILES ${RUNTIME_DLLS} DESTINATION bin)
+
+    # 可选：MKL DLLs 等
+    # install(FILES ${MKL_ROOT}/bin/mkl_core.dll ... DESTINATION bin)
+
+elseif(APPLE)
+    set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
+
+    install(TARGETS osca ${PROJECT_LIBS}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+endif()
 
 message(STATUS "OSCA build configuration complete.")
