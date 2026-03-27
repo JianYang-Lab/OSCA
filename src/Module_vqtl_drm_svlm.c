@@ -2212,10 +2212,16 @@ drm_thread_worker(void *args) {
     float *result = args_in->result;
 
     //make sure cis & trans
-    uint32_t epi_cis_start = args_in->epi_value->position - args_in->opt_cis_window_bp;
-    uint32_t epi_cis_end = args_in->epi_value->position + args_in->opt_cis_window_bp;
-    uint32_t epi_trans_start = args_in->epi_value->position - args_in->opt_trans_distance_bp;
-    uint32_t epi_trans_end = args_in->epi_value->position + args_in->opt_trans_distance_bp;
+    int64_t epi_cis_start = (int64_t)args_in->epi_value->position - args_in->opt_cis_window_bp;
+    int64_t epi_cis_end   = (int64_t)args_in->epi_value->position + args_in->opt_cis_window_bp;
+    if (epi_cis_start < 0)
+        epi_cis_start = 0;
+        
+    int64_t epi_trans_start = (int64_t)args_in->epi_value->position - args_in->opt_trans_distance_bp;
+    int64_t epi_trans_end   = (int64_t)args_in->epi_value->position + args_in->opt_trans_distance_bp;
+    if (epi_trans_start < 0)
+        epi_trans_start = 0;
+
     // count valid number that pass the cis / trans conditions
     int valid_num = 0;
     if (args_in->flag_cis && !(args_in->flag_trans)) 
@@ -2344,8 +2350,9 @@ drm_thread_worker(void *args) {
         for (int i = 0; i < variant_slice_len; i++) {
             uint32_t align_len_rm_missing = 0;
             if((strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) == 0 &&
-             args_in->esi_infoArray[i].position < epi_trans_start && args_in->esi_infoArray[i].position > epi_trans_end) || 
-             strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) != 0) {
+                (args_in->esi_infoArray[i].position < epi_trans_start ||
+                args_in->esi_infoArray[i].position > epi_trans_end)) ||
+                strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) != 0) {
                 char *current_geno_one = variant_data_loaded + i * fam_num;
                 uint32_t g0_num = 0, g1_num = 0, g2_num = 0;
                 for (uint32_t j = 0; j < align_len; j++) {
@@ -2467,7 +2474,8 @@ drm_thread_worker(void *args) {
             if((strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) == 0 &&
              args_in->esi_infoArray[i].position >= epi_cis_start && args_in->esi_infoArray[i].position <= epi_cis_end) || 
              ((strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) == 0 &&
-             args_in->esi_infoArray[i].position < epi_trans_start && args_in->esi_infoArray[i].position > epi_trans_end) ||
+             (args_in->esi_infoArray[i].position < epi_trans_start ||
+             args_in->esi_infoArray[i].position > epi_trans_end)) ||
              strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) != 0)) {
                 char *current_geno_one = variant_data_loaded + i * fam_num;
                 uint32_t g0_num = 0, g1_num = 0, g2_num = 0;
@@ -2712,10 +2720,15 @@ svlm_thread_worker(void *args)
     float *result = args_in->result;
 
     //make sure cis & trans
-    uint32_t epi_cis_start = args_in->epi_value->position - args_in->opt_cis_window_bp;
-    uint32_t epi_cis_end = args_in->epi_value->position + args_in->opt_cis_window_bp;
-    uint32_t epi_trans_start = args_in->epi_value->position - args_in->opt_trans_distance_bp;
-    uint32_t epi_trans_end = args_in->epi_value->position + args_in->opt_trans_distance_bp;
+    int64_t epi_cis_start = (int64_t)args_in->epi_value->position - args_in->opt_cis_window_bp;
+    int64_t epi_cis_end   = (int64_t)args_in->epi_value->position + args_in->opt_cis_window_bp;
+    if (epi_cis_start < 0)
+        epi_cis_start = 0;
+        
+    int64_t epi_trans_start = (int64_t)args_in->epi_value->position - args_in->opt_trans_distance_bp;
+    int64_t epi_trans_end   = (int64_t)args_in->epi_value->position + args_in->opt_trans_distance_bp;
+    if (epi_trans_start < 0)
+        epi_trans_start = 0;
     int valid_num = 0;
     if (args_in->flag_cis && !(args_in->flag_trans)){
         for (int i = 0; i < variant_slice_len; i++) {
@@ -2777,8 +2790,9 @@ svlm_thread_worker(void *args)
     {
         for (int i = 0; i < variant_slice_len; i++) {
             if((strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) == 0 &&
-             args_in->esi_infoArray[i].position < epi_trans_start && args_in->esi_infoArray[i].position > epi_trans_end) || 
-             strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) != 0) {
+                (args_in->esi_infoArray[i].position < epi_trans_start ||
+                args_in->esi_infoArray[i].position > epi_trans_end)) ||
+                strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) != 0) {
                 char *varinat_data_one = variant_data + (i * fam_num);
                 uint32_t align_len_rm_missing = 0;
                 uint32_t geno_index = 0, pheno_index = 0;
@@ -2836,7 +2850,8 @@ svlm_thread_worker(void *args)
             if((strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) == 0 &&
              args_in->esi_infoArray[i].position >= epi_cis_start && args_in->esi_infoArray[i].position <= epi_cis_end) || 
              ((strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) == 0 &&
-             args_in->esi_infoArray[i].position < epi_trans_start && args_in->esi_infoArray[i].position > epi_trans_end) ||
+             (args_in->esi_infoArray[i].position < epi_trans_start ||
+             args_in->esi_infoArray[i].position > epi_trans_end)) ||
              strcmp(args_in->esi_infoArray[i].chromosome, args_in->epi_value->chromosome) != 0)) {
                 char *varinat_data_one = variant_data + (i * fam_num);
                 uint32_t align_len_rm_missing = 0;

@@ -113,7 +113,7 @@ extern inline string atosm (T const& a)
 {
     if(a==-9) return("NA");
     stringstream ss;
-    ss << a;
+    ss << setprecision(10) << a;
     return(ss.str());
 }
 template <typename T>
