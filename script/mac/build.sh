@@ -10,6 +10,7 @@ EXECUTABLE_PATH="$INSTALL_DIR/usr/bin/$APP_NAME"
 echo "[1/5] CMake 构建并安装..."
 CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR/usr" \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   -B "$BUILD_DIR" -S .
 cmake --build "$BUILD_DIR" --target install
 
