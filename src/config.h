@@ -1,7 +1,7 @@
 #ifndef __OSCA_CONFIG__
 #define __OSCA_CONFIG__
 
-#define OSCA_VERSION "v1.21"
+#define OSCA_VERSION "v1.22"
 
 #if defined __linux
 # include <linux/version.h>

@@ -93,3 +93,46 @@ OSCA (OmicS-data-based Complex trait Analysis) is a software tool for the analys
 ## USAGE
 
 See https://yanglab.westlake.edu.cn/software/osca/#Overview for its usage and data resources.
+
+## MCP Server — Use OSCA via AI Conversation
+
+The pre-built binary directory (`osca-1.22-linux-x86_64/`) ships with an MCP
+server (`mcp_server.py`) that exposes all OSCA functionality to AI assistants
+such as **Claude Desktop**, **OpenAI Codex**, and **opencode**.
+
+### Quick Start
+
+```bash
+pip install mcp
+```
+
+Add the server to your AI tool's config (replace `<OSCA_DIR>` with the real path to the `osca-1.22-linux-x86_64` directory):
+
+```json
+{
+  "mcpServers": {
+    "osca": {
+      "command": "python3",
+      "args": ["<OSCA_DIR>/osca-mcp/mcp_server.py"]
+    }
+  }
+}
+```
+
+Restart your AI tool, then ask questions in natural language:
+
+- "Create an ORM from my methylation data"
+- "Run a mixed linear model association analysis with covariates"
+- "What flags does OSCA support for eQTL analysis?"
+
+### Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `osca_info()` | Check OSCA binary status and version |
+| `osca_help(topic)` | Get OSCA documentation (`overview`, `commands`, `flags`, `examples`, `formats`) |
+| `run_osca(args, workdir)` | Execute any OSCA command; returns stdout, stderr, output files, and log |
+| `list_files(path, pattern)` | List files in a directory |
+| `read_file(path, max_lines)` | Read file contents with pagination |
+
+See `osca-1.22-linux-x86_64/Readme.txt` for full configuration details.
